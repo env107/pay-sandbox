@@ -35,7 +35,7 @@ func SimulateRefund(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order status is not SUCCESS or REFUND"})
 		return
 	}
-	
+
 	// 2. 校验金额 (简化逻辑：不严格校验累计退款是否超额)
 	if input.Amount > tx.Amount {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Refund amount exceeds total amount"})
