@@ -85,18 +85,19 @@ func TriggerCallback(tx model.Transaction) {
 		jsonBody, _ := json.Marshal(payload)
 
 		for i := 0; i < maxRetries; i++ {
+
+			// 如果不是第一次尝试，先等待
+			if i > 0 {
+				time.Sleep(retryInterval)
+			}
+
 			// 每次重试前实时查询已尝试次数
 			var existingLogsCount int64
 			core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", tx.TransactionID).Count(&existingLogsCount)
 
 			if int(existingLogsCount) >= maxRetries {
 				fmt.Printf("Transaction %s already reached max retries (%d), stop retry loop.\n", tx.TransactionID, maxRetries)
-				break
-			}
-
-			// 如果不是第一次尝试，先等待
-			if i > 0 {
-				time.Sleep(retryInterval)
+				return
 			}
 
 			// 在实际发起 HTTP 请求前加锁
@@ -123,7 +124,7 @@ func TriggerCallback(tx model.Transaction) {
 
 			// 请求结束，释放锁
 			callbackLocks.Delete(tx.TransactionID)
-
+			fmt.Println(int(existingLogsCount) + 1)
 			// 记录日志
 			log := model.CallbackLog{
 				TransactionID: tx.TransactionID,
