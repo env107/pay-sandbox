@@ -3,7 +3,7 @@
     <el-container>
       <el-aside width="240px" class="material-aside">
         <div class="logo-area">
-          <span class="logo-text">WePay Sandbox</span>
+          <span class="logo-text">Pay Sandbox</span>
         </div>
         <el-menu
           router

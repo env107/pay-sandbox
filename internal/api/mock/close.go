@@ -11,7 +11,7 @@ import (
 // CloseOrder 关闭订单
 func CloseOrder(c *gin.Context) {
 	outTradeNo := c.Param("out_trade_no")
-	
+
 	// 读取 Body 中的 mchid (虽然文档要求，但为了简化 Mock，我们可以只从 DB 查)
 	var req struct {
 		MchID string `json:"mchid"`
