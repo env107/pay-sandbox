@@ -5,10 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 	"wepay-sandbox/internal/api"
 	"wepay-sandbox/internal/core"
 	"wepay-sandbox/internal/model"
+)
+
+var (
+	// callbackLocks 支付回调并发锁，key 为 TransactionID
+	callbackLocks sync.Map
 )
 
 // NotifyConfig 回调配置结构
@@ -19,7 +25,15 @@ type NotifyConfig struct {
 
 // TriggerCallback 触发回调
 func TriggerCallback(tx model.Transaction) {
+	// 使用 sync.Map 实现简单的并发锁
+	if _, loaded := callbackLocks.LoadOrStore(tx.TransactionID, true); loaded {
+		fmt.Printf("Transaction %s callback is already in progress, skip.\n", tx.TransactionID)
+		return
+	}
+
 	go func() {
+		defer callbackLocks.Delete(tx.TransactionID)
+
 		// 1. 检查是否已经回调成功，避免重复发送
 		var currentTx model.Transaction
 		if err := core.DB.First(&currentTx, tx.ID).Error; err == nil {
@@ -47,6 +61,16 @@ func TriggerCallback(tx model.Transaction) {
 					retryInterval = d
 				}
 			}
+		}
+
+		// 获取已尝试次数 (从 CallbackLog 中查询)
+		var existingLogsCount int64
+		core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", tx.TransactionID).Count(&existingLogsCount)
+
+		remainingRetries := maxRetries - int(existingLogsCount)
+		if remainingRetries <= 0 {
+			fmt.Printf("Transaction %s already reached max retries (%d), skip.\n", tx.TransactionID, maxRetries)
+			return
 		}
 
 		payload := map[string]interface{}{
@@ -78,7 +102,7 @@ func TriggerCallback(tx model.Transaction) {
 
 		jsonBody, _ := json.Marshal(payload)
 
-		for i := 0; i < maxRetries; i++ {
+		for i := 0; i < remainingRetries; i++ {
 			// 如果不是第一次尝试，先等待
 			if i > 0 {
 				time.Sleep(retryInterval)
@@ -108,7 +132,7 @@ func TriggerCallback(tx model.Transaction) {
 				ResponseBody:  respBody,
 				StatusCode:    statusCode,
 				Status:        status,
-				RetryCount:    i + 1, // 第几次尝试
+				RetryCount:    int(existingLogsCount) + i + 1, // 总计第几次尝试
 			}
 			core.DB.Create(&log)
 
