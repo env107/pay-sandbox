@@ -1,7 +1,7 @@
 # Pay Sandbox - 在线支付模拟沙箱平台
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/your-username/wepay-sandbox)](https://golang.org/)
-[![Vue Version](https://img.shields.io/badge/vue-3.x-brightgreen.svg)](https://vuejs.org/)
+[![Go Version](https://img.shields.io/badge/go-1.20+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![Vue Version](https://img.shields.io/badge/vue-3.x-4FC08D?style=flat&logo=vue.js)](https://vuejs.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 1. 项目概述
