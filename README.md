@@ -12,7 +12,14 @@
 ### 1.2 目前支持的平台
 - **微信支付 V3**
 
+### 1.3 项目图
+<img width="3819" height="1611" alt="1" src="https://github.com/user-attachments/assets/595dd56e-34a0-49ba-9b10-a0230580dd6d" />
+<img width="3822" height="1383" alt="2" src="https://github.com/user-attachments/assets/306caa74-204b-4a59-8ccb-cfdc31e3013e" />
+<img width="3827" height="1077" alt="3" src="https://github.com/user-attachments/assets/5f4277ff-78ca-4208-9919-54107fd7ddcb" />
+<img width="563" height="1095" alt="4" src="https://github.com/user-attachments/assets/4d79d008-58da-422a-972d-f6b52e378362" />
+
 ---
+
 
 ## 2. 功能说明
 
