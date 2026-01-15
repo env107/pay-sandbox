@@ -49,16 +49,6 @@ func TriggerRefundCallback(refund model.Refund) {
 			}
 		}
 
-		// 获取已尝试次数 (从 CallbackLog 中查询)
-		var existingLogsCount int64
-		core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", refund.RefundID).Count(&existingLogsCount)
-
-		remainingRetries := maxRetries - int(existingLogsCount)
-		if remainingRetries <= 0 {
-			fmt.Printf("Refund %s already reached max retries (%d), skip.\n", refund.RefundID, maxRetries)
-			return
-		}
-
 		payload := map[string]interface{}{
 			"id":             refund.RefundID, // 通知ID
 			"create_time":    time.Now().Format(time.RFC3339),
@@ -88,7 +78,16 @@ func TriggerRefundCallback(refund model.Refund) {
 
 		jsonBody, _ := json.Marshal(payload)
 
-		for i := 0; i < remainingRetries; i++ {
+		for i := 0; i < maxRetries; i++ {
+			// 每次重试前实时查询已尝试次数
+			var existingLogsCount int64
+			core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", refund.RefundID).Count(&existingLogsCount)
+
+			if int(existingLogsCount) >= maxRetries {
+				fmt.Printf("Refund %s already reached max retries (%d), stop retry loop.\n", refund.RefundID, maxRetries)
+				break
+			}
+
 			if i > 0 {
 				time.Sleep(retryInterval)
 			}
@@ -133,7 +132,7 @@ func TriggerRefundCallback(refund model.Refund) {
 				ResponseBody:  respBody,
 				StatusCode:    statusCode,
 				Status:        status,
-				RetryCount:    int(existingLogsCount) + i + 1,
+				RetryCount:    int(existingLogsCount) + 1,
 			}
 			core.DB.Create(&log)
 

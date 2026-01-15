@@ -55,16 +55,6 @@ func TriggerCallback(tx model.Transaction) {
 			}
 		}
 
-		// 获取已尝试次数 (从 CallbackLog 中查询)
-		var existingLogsCount int64
-		core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", tx.TransactionID).Count(&existingLogsCount)
-
-		remainingRetries := maxRetries - int(existingLogsCount)
-		if remainingRetries <= 0 {
-			fmt.Printf("Transaction %s already reached max retries (%d), skip.\n", tx.TransactionID, maxRetries)
-			return
-		}
-
 		payload := map[string]interface{}{
 			"id":             tx.TransactionID, // 通知ID
 			"create_time":    time.Now().Format(time.RFC3339),
@@ -94,7 +84,16 @@ func TriggerCallback(tx model.Transaction) {
 
 		jsonBody, _ := json.Marshal(payload)
 
-		for i := 0; i < remainingRetries; i++ {
+		for i := 0; i < maxRetries; i++ {
+			// 每次重试前实时查询已尝试次数
+			var existingLogsCount int64
+			core.DB.Model(&model.CallbackLog{}).Where("transaction_id = ?", tx.TransactionID).Count(&existingLogsCount)
+
+			if int(existingLogsCount) >= maxRetries {
+				fmt.Printf("Transaction %s already reached max retries (%d), stop retry loop.\n", tx.TransactionID, maxRetries)
+				break
+			}
+
 			// 如果不是第一次尝试，先等待
 			if i > 0 {
 				time.Sleep(retryInterval)
@@ -103,7 +102,7 @@ func TriggerCallback(tx model.Transaction) {
 			// 在实际发起 HTTP 请求前加锁
 			if _, loaded := callbackLocks.LoadOrStore(tx.TransactionID, true); loaded {
 				fmt.Printf("Transaction %s individual callback attempt is already in progress, skip this loop.\n", tx.TransactionID)
-				continue // 如果当前有请求正在发，跳过本次循环进入下一次重试等待
+				continue
 			}
 
 			resp, err := http.Post(tx.NotifyUrl, "application/json", bytes.NewBuffer(jsonBody))
@@ -133,7 +132,7 @@ func TriggerCallback(tx model.Transaction) {
 				ResponseBody:  respBody,
 				StatusCode:    statusCode,
 				Status:        status,
-				RetryCount:    int(existingLogsCount) + i + 1, // 总计第几次尝试
+				RetryCount:    int(existingLogsCount) + 1, // 当前总计第几次尝试
 			}
 			core.DB.Create(&log)
 
