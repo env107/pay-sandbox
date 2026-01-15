@@ -1,4 +1,4 @@
-# Pay Sandbox - 网上支付 模拟沙箱平台
+# Pay Sandbox - 在线支付模拟沙箱平台
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/your-username/wepay-sandbox)](https://golang.org/)
 [![Vue Version](https://img.shields.io/badge/vue-3.x-brightgreen.svg)](https://vuejs.org/)
@@ -7,7 +7,7 @@
 ## 1. 项目概述
 
 ### 1.1 项目简介
-**Pay Sandbox** 是一个专为开发者设计的本地化网络支付模拟环境，旨在解决在开发过程中真实环境测试成本高、官方沙箱环境不稳定或配置复杂等痛点。通过本项目，开发者可以在本地轻松调试支付下单、查询、关闭、退款以及回调通知等完整业务流。
+**Pay Sandbox** 是一个专为开发者设计的本地化在线支付模拟环境，旨在解决在开发过程中真实环境测试成本高、官方沙箱环境不稳定或配置复杂等痛点。通过本项目，开发者可以在本地轻松调试支付下单、查询、关闭、退款以及回调通知等完整业务流。
 
 ### 1.2 目前支持的平台
 - **微信支付 V3**

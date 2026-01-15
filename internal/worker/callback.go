@@ -25,15 +25,7 @@ type NotifyConfig struct {
 
 // TriggerCallback 触发回调
 func TriggerCallback(tx model.Transaction) {
-	// 使用 sync.Map 实现简单的并发锁
-	if _, loaded := callbackLocks.LoadOrStore(tx.TransactionID, true); loaded {
-		fmt.Printf("Transaction %s callback is already in progress, skip.\n", tx.TransactionID)
-		return
-	}
-
 	go func() {
-		defer callbackLocks.Delete(tx.TransactionID)
-
 		// 1. 检查是否已经回调成功，避免重复发送
 		var currentTx model.Transaction
 		if err := core.DB.First(&currentTx, tx.ID).Error; err == nil {
@@ -108,6 +100,12 @@ func TriggerCallback(tx model.Transaction) {
 				time.Sleep(retryInterval)
 			}
 
+			// 在实际发起 HTTP 请求前加锁
+			if _, loaded := callbackLocks.LoadOrStore(tx.TransactionID, true); loaded {
+				fmt.Printf("Transaction %s individual callback attempt is already in progress, skip this loop.\n", tx.TransactionID)
+				continue // 如果当前有请求正在发，跳过本次循环进入下一次重试等待
+			}
+
 			resp, err := http.Post(tx.NotifyUrl, "application/json", bytes.NewBuffer(jsonBody))
 
 			status := "FAIL"
@@ -123,6 +121,9 @@ func TriggerCallback(tx model.Transaction) {
 			} else {
 				respBody = err.Error()
 			}
+
+			// 请求结束，释放锁
+			callbackLocks.Delete(tx.TransactionID)
 
 			// 记录日志
 			log := model.CallbackLog{

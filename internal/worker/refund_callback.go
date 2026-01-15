@@ -19,15 +19,7 @@ var (
 
 // TriggerRefundCallback 触发退款回调
 func TriggerRefundCallback(refund model.Refund) {
-	// 并发锁
-	if _, loaded := refundCallbackLocks.LoadOrStore(refund.RefundID, true); loaded {
-		fmt.Printf("Refund %s callback is already in progress, skip.\n", refund.RefundID)
-		return
-	}
-
 	go func() {
-		defer refundCallbackLocks.Delete(refund.RefundID)
-
 		// 1. 检查是否已经回调成功
 		var currentRefund model.Refund
 		if err := core.DB.First(&currentRefund, refund.ID).Error; err == nil {
@@ -101,6 +93,12 @@ func TriggerRefundCallback(refund model.Refund) {
 				time.Sleep(retryInterval)
 			}
 
+			// 在实际发起 HTTP 请求前加锁
+			if _, loaded := refundCallbackLocks.LoadOrStore(refund.RefundID, true); loaded {
+				fmt.Printf("Refund %s individual callback attempt is already in progress, skip this loop.\n", refund.RefundID)
+				continue
+			}
+
 			// 退款回调地址优先使用 Merchant 配置 of RefundNotifyUrl，如果没有则使用 NotifyUrl (或退款接口传入的)
 			// 此处假设使用 Refund.NotifyUrl (在创建 Refund 时已从 Merchant 获取并存入)
 			notifyUrl := refund.NotifyUrl
@@ -123,6 +121,9 @@ func TriggerRefundCallback(refund model.Refund) {
 			} else {
 				respBody = err.Error()
 			}
+
+			// 请求结束，释放锁
+			refundCallbackLocks.Delete(refund.RefundID)
 
 			// 记录日志 (复用 CallbackLog, TransactionID 存 RefundID 方便查询)
 			log := model.CallbackLog{
