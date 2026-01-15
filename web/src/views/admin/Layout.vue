@@ -10,19 +10,26 @@
           :default-active="$route.path"
           class="el-menu-vertical-demo material-menu"
           text-color="#5f6368"
-          active-text-color="#1a73e8">
-          <el-menu-item index="/admin/merchants">
-            <el-icon :size="20"><User /></el-icon>
-            <span class="menu-text">商户管理</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/transactions">
-            <el-icon :size="20"><List /></el-icon>
-            <span class="menu-text">交易流水</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/refunds">
-            <el-icon :size="20"><RefreshLeft /></el-icon>
-            <span class="menu-text">退款流水</span>
-          </el-menu-item>
+          active-text-color="#1a73e8"
+          :default-openeds="['wechat-pay']">
+          <el-sub-menu index="wechat-pay">
+            <template #title>
+              <el-icon :size="20"><Wallet /></el-icon>
+              <span class="menu-text">微信支付</span>
+            </template>
+            <el-menu-item index="/admin/merchants">
+              <el-icon :size="20"><User /></el-icon>
+              <span class="menu-text">商户管理</span>
+            </el-menu-item>
+            <el-menu-item index="/admin/transactions">
+              <el-icon :size="20"><List /></el-icon>
+              <span class="menu-text">交易流水</span>
+            </el-menu-item>
+            <el-menu-item index="/admin/refunds">
+              <el-icon :size="20"><RefreshLeft /></el-icon>
+              <span class="menu-text">退款流水</span>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
       <el-container>
@@ -44,7 +51,7 @@
 </template>
 
 <script setup>
-import { User, List, RefreshLeft } from '@element-plus/icons-vue'
+import { User, List, RefreshLeft, Wallet } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 
 const getPageTitle = (path) => {
@@ -85,12 +92,16 @@ const getPageTitle = (path) => {
   border-right: none;
   padding-top: 12px;
 }
-.el-menu-item {
+.el-menu-item, :deep(.el-sub-menu__title) {
   height: 48px;
   line-height: 48px;
   margin: 0 12px 4px 12px;
-  border-radius: 0 24px 24px 0;
-  border-radius: 8px; /* Material 3 style uses rounded rects mostly now, or full round */
+  border-radius: 8px;
+}
+:deep(.el-sub-menu .el-menu-item) {
+  margin-left: 24px;
+  margin-right: 12px;
+  width: auto;
 }
 .el-menu-item.is-active {
   background-color: #e8f0fe;
