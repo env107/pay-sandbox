@@ -11,6 +11,8 @@
 
 ### 1.2 目前支持的平台
 - **微信支付 V3**
+  - JSAPI 支付
+  - APP 支付
 
 ### 1.3 项目图
 <img width="3819" height="1611" alt="1" src="https://github.com/user-attachments/assets/595dd56e-34a0-49ba-9b10-a0230580dd6d" />
@@ -31,7 +33,7 @@
 - **配置直观化**: 前端提供 JSON 配置编辑界面，方便设置重试间隔和最大重试次数。
 
 #### 1.2 支付与退款模拟
-- **JSAPI 预下单**: 模拟 `/v3/pay/transactions/jsapi` 接口，生成 `prepay_id`。
+- **JSAPI/APP 预下单**: 模拟 `/v3/pay/transactions/jsapi` 和 `/v3/pay/transactions/app` 接口，生成 `prepay_id`。
 - **移动端模拟页**: 提供高仿微信支付确认页，支持手动输入 6 位密码触发支付。
 - **订单管理**: 支持通过微信支付单号或商户订单号查询订单状态、手动关闭订单。
 - **模拟退款**: 支持对已支付订单发起退款，可指定退款金额和原因。
@@ -49,6 +51,7 @@
 #### 1.5 Mock 接口使用
 本项目提供了一套高度兼容微信支付 V3 规范的 Mock 接口，开发者只需将业务代码中的微信支付域名替换为本地沙箱地址（如 `http://localhost:8080`）即可开始调试：
 - **JSAPI 下单**: `POST /v3/pay/transactions/jsapi`
+- **APP 下单**: `POST /v3/pay/transactions/app`
 - **订单查询**: 
   - 通过微信支付单号: `GET /v3/pay/transactions/id/{transaction_id}`
   - 通过商户订单号: `GET /v3/pay/transactions/out-trade-no/{out_trade_no}`
