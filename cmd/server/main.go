@@ -35,6 +35,7 @@ func main() {
 	v3 := r.Group("/v3")
 	{
 		v3.POST("/pay/transactions/jsapi", mock.JSAPIPrepay)
+		v3.POST("/pay/transactions/app", mock.AppPrepay)
 		v3.GET("/pay/transactions/id/:transaction_id", mock.QueryByTransactionID)
 		v3.GET("/pay/transactions/out-trade-no/:out_trade_no", mock.QueryByOutTradeNo)
 		v3.POST("/pay/transactions/out-trade-no/:out_trade_no/close", mock.CloseOrder)

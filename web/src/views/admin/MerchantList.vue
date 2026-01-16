@@ -75,6 +75,8 @@
           <el-form-item label="支付类型">
             <el-select v-model="paymentType" placeholder="请选择支付类型" style="width: 100%">
               <el-option label="JSAPI" value="WX:JSAPI" />
+              <el-option label="小程序" value="WX:M_JSAPI" />
+              <el-option label="APP支付" value="WX:APP" />
             </el-select>
           </el-form-item>
           <el-form-item label="支付金额 (元)">
@@ -208,22 +210,30 @@ const openSimulatePay = (row) => {
 const startPay = async () => {
   creatingOrder.value = true
   try {
-    // 调用 mock 下单接口
-    const res = await axios.post('/v3/pay/transactions/jsapi', {
+    let url = '/v3/pay/transactions/jsapi'
+    const reqBody = {
       appid: currentMerchant.value.appid,
       mchid: currentMerchant.value.mchid,
       description: '模拟支付测试商品',
       out_trade_no: 'TEST_' + Date.now(),
       notify_url: currentMerchant.value.notify_url,
-      trade_type: paymentType.value,
       amount: {
         total: Math.round(payAmount.value * 100), // 转为分
         currency: 'CNY'
-      },
-      payer: {
+      }
+    }
+
+    if (paymentType.value === 'WX:APP') {
+      url = '/v3/pay/transactions/app'
+    } else {
+      reqBody.trade_type = paymentType.value
+      reqBody.payer = {
         openid: 'mock_openid_123'
       }
-    })
+    }
+
+    // 调用 mock 下单接口
+    const res = await axios.post(url, reqBody)
     const prepayId = res.data.prepay_id
     window.open(`/pay/preview/${prepayId}`, '_blank', 'width=375,height=667')
     simulateVisible.value = false

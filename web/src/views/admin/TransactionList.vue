@@ -158,7 +158,8 @@ const filter = ref({
 
 const tradeTypeMap = {
   'WX:JSAPI': 'JSAPI',
-  'JSAPI': 'JSAPI'
+  'WX:M_JSAPI': '小程序',
+  'WX:APP': 'APP支付',
 }
 
 const loadData = async () => {
