@@ -3,16 +3,23 @@
     <div class="table-header">
       <h3 class="card-title">交易流水</h3>
       <div class="filter-bar">
-        <el-input v-model="filter.out_trade_no" placeholder="商户订单号" style="width: 180px" clearable />
-        <el-input v-model="filter.prepay_id" placeholder="Prepay ID" style="width: 180px" clearable />
-        <el-select v-model="filter.status" placeholder="状态" style="width: 120px" clearable>
+        <el-input v-model="filter.mchid" placeholder="商户 ID" style="width: 150px" clearable size="large" />
+        <el-input v-model="filter.out_trade_no" placeholder="商户订单号" style="width: 180px" clearable size="large" />
+        <el-input v-model="filter.prepay_id" placeholder="Prepay ID" style="width: 180px" clearable size="large" />
+        <el-select v-model="filter.trade_type" placeholder="支付类型" style="width: 120px" clearable size="large">
+          <el-option label="JSAPI" value="WX:JSAPI" />
+          <el-option label="小程序" value="WX:M_JSAPI" />
+          <el-option label="APP支付" value="WX:APP" />
+        </el-select>
+        <el-select v-model="filter.status" placeholder="状态" style="width: 120px" clearable size="large">
           <el-option label="CREATED" value="CREATED" />
           <el-option label="SUCCESS" value="SUCCESS" />
+          <el-option label="REFUND" value="REFUND" />
           <el-option label="FAIL" value="FAIL" />
         </el-select>
-        <el-button type="primary" @click="loadData">查询</el-button>
-        <el-button @click="resetFilter">重置</el-button>
-        <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
+        <el-button type="primary" @click="loadData" size="large">查询</el-button>
+        <el-button @click="resetFilter" size="large">重置</el-button>
+        <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete" size="large">
           批量删除
         </el-button>
       </div>
@@ -151,8 +158,10 @@ const refundReason = ref('')
 const refunding = ref(false)
 
 const filter = ref({
+  mchid: '',
   out_trade_no: '',
   prepay_id: '',
+  trade_type: '',
   status: ''
 })
 
@@ -165,8 +174,10 @@ const tradeTypeMap = {
 const loadData = async () => {
   try {
     const params = {
+      mchid: filter.value.mchid,
       out_trade_no: filter.value.out_trade_no,
       prepay_id: filter.value.prepay_id,
+      trade_type: filter.value.trade_type,
       status: filter.value.status
     }
     const res = await axios.get('/api/internal/transactions', { params })
@@ -177,7 +188,7 @@ const loadData = async () => {
 }
 
 const resetFilter = () => {
-  filter.value = { out_trade_no: '', prepay_id: '', status: '' }
+  filter.value = { mchid: '', out_trade_no: '', prepay_id: '', trade_type: '', status: '' }
   loadData()
 }
 

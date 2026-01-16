@@ -34,7 +34,12 @@ func ListTransactions(c *gin.Context) {
 		query = query.Where("status = ?", status)
 	}
 
-	// 5. 时间范围筛选
+	// 5. 支付类型筛选
+	if tradeType := c.Query("trade_type"); tradeType != "" {
+		query = query.Where("trade_type = ?", tradeType)
+	}
+
+	// 6. 时间范围筛选
 	if startTime := c.Query("start_time"); startTime != "" {
 		query = query.Where("created_at >= ?", startTime)
 	}
