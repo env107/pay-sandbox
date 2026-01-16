@@ -25,8 +25,14 @@
           {{ new Date(scope.row.created_at).toLocaleString() }}
         </template>
       </el-table-column>
+      <el-table-column prop="mchid" label="商户ID" min-width="160" />
       <el-table-column prop="out_trade_no" label="商户订单号" min-width="220" />
       <el-table-column prop="prepay_id" label="Prepay ID" min-width="220" show-overflow-tooltip />
+      <el-table-column prop="trade_type" label="支付类型" min-width="120">
+        <template #default="scope">
+          {{ tradeTypeMap[scope.row.trade_type] || scope.row.trade_type }}
+        </template>
+      </el-table-column>
       <el-table-column prop="amount" label="金额 (分)" min-width="120" align="right" />
       <el-table-column prop="status" label="状态" min-width="120" align="center">
         <template #default="scope">
@@ -149,6 +155,11 @@ const filter = ref({
   prepay_id: '',
   status: ''
 })
+
+const tradeTypeMap = {
+  'WX:JSAPI': 'JSAPI',
+  'JSAPI': 'JSAPI'
+}
 
 const loadData = async () => {
   try {

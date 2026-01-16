@@ -25,6 +25,7 @@ type JSAPIPrepayRequest struct {
 	Payer struct {
 		OpenID string `json:"openid"`
 	} `json:"payer"`
+	TradeType string `json:"trade_type"`
 }
 
 // JSAPIPrepay JSAPI 下单接口
@@ -46,6 +47,12 @@ func JSAPIPrepay(c *gin.Context) {
 	prepayID := fmt.Sprintf("wx%s%06d", time.Now().Format("20060102150405"), rand.Intn(100000))
 	transactionID := fmt.Sprintf("420000%s%06d", time.Now().Format("20060102150405"), rand.Intn(100000))
 
+	// 确定 TradeType
+	tradeType := req.TradeType
+	if tradeType == "" {
+		tradeType = "WX:JSAPI" // 默认值
+	}
+
 	// 保存交易记录
 	tx := model.Transaction{
 		AppID:         req.AppID,
@@ -59,7 +66,7 @@ func JSAPIPrepay(c *gin.Context) {
 		PayerOpenID:   req.Payer.OpenID,
 		Status:        "CREATED",
 		NotifyUrl:     req.NotifyUrl,
-		TradeType:     "JSAPI",
+		TradeType:     tradeType,
 	}
 
 	if err := core.DB.Create(&tx).Error; err != nil {

@@ -72,6 +72,11 @@
       </div>
       <div v-else class="simulate-box">
         <el-form label-position="top" size="large">
+          <el-form-item label="支付类型">
+            <el-select v-model="paymentType" placeholder="请选择支付类型" style="width: 100%">
+              <el-option label="JSAPI" value="WX:JSAPI" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="支付金额 (元)">
             <el-input-number v-model="payAmount" :precision="2" :step="0.01" :min="0.01" style="width: 100%" />
           </el-form-item>
@@ -112,6 +117,7 @@ const isEdit = ref(false)
 const simulateVisible = ref(false)
 const currentMerchant = ref({})
 const payAmount = ref(0.01)
+const paymentType = ref('WX:JSAPI')
 const creatingOrder = ref(false)
 
 const loadData = async () => {
@@ -196,6 +202,7 @@ const openSimulatePay = (row) => {
   currentMerchant.value = row
   simulateVisible.value = true
   payAmount.value = 0.01
+  paymentType.value = 'WX:JSAPI'
 }
 
 const startPay = async () => {
@@ -208,6 +215,7 @@ const startPay = async () => {
       description: '模拟支付测试商品',
       out_trade_no: 'TEST_' + Date.now(),
       notify_url: currentMerchant.value.notify_url,
+      trade_type: paymentType.value,
       amount: {
         total: Math.round(payAmount.value * 100), // 转为分
         currency: 'CNY'

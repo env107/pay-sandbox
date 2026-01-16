@@ -28,6 +28,7 @@
           {{ new Date(scope.row.created_at).toLocaleString() }}
         </template>
       </el-table-column>
+      <el-table-column prop="mchid" label="商户ID" min-width="160" />
       <el-table-column prop="out_refund_no" label="商户退款单号" min-width="200" />
       <el-table-column prop="transaction_id" label="支付订单号" min-width="220" />
       <el-table-column prop="amount" label="退款金额 (分)" min-width="120" align="right" />
