@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"log"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	port := flag.String("port", "8081", "notify port")
+	flag.Parse()
 	// 设置 Gin 为发布模式，减少干扰日志
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
@@ -34,7 +37,7 @@ func main() {
 		})
 	})
 
-	addr := ":8081"
+	addr := ":" + *port
 	log.Printf("回调服务已启动，监听地址 %s/notify", addr)
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("服务启动失败: %v", err)
