@@ -20,6 +20,7 @@
       <el-table-column prop="description" label="备注" min-width="180" />
       <el-table-column label="操作" width="280" fixed="right">
         <template #default="scope">
+          <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
           <el-button link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button link type="primary" @click="openSimulatePay(scope.row)">模拟支付请求</el-button>
         </template>
@@ -91,6 +92,25 @@
         </el-form>
       </div>
     </el-dialog>
+
+    <!-- 商户详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="商户详情" width="600px">
+      <el-descriptions :column="1" border size="large">
+        <el-descriptions-item label="商户号 (MchID)">{{ detailMerchant.mchid }}</el-descriptions-item>
+        <el-descriptions-item label="AppID">{{ detailMerchant.appid }}</el-descriptions-item>
+        <el-descriptions-item label="备注">{{ detailMerchant.description }}</el-descriptions-item>
+        <el-descriptions-item label="API v3 Key">{{ detailMerchant.api_v3_key }}</el-descriptions-item>
+        <el-descriptions-item label="支付回调地址">{{ detailMerchant.notify_url }}</el-descriptions-item>
+        <el-descriptions-item label="退款回调地址">{{ detailMerchant.refund_notify_url }}</el-descriptions-item>
+        <el-descriptions-item label="回调间隔">{{ detailMerchant.interval }}</el-descriptions-item>
+        <el-descriptions-item label="最大重试次数">{{ detailMerchant.max_retries }}</el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="detailVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -121,6 +141,10 @@ const currentMerchant = ref({})
 const payAmount = ref(0.01)
 const paymentType = ref('WX:JSAPI')
 const creatingOrder = ref(false)
+
+// 商户详情相关
+const detailVisible = ref(false)
+const detailMerchant = ref({})
 
 const loadData = async () => {
   try {
@@ -198,6 +222,22 @@ const handleEdit = (row) => {
   }
   isEdit.value = true
   dialogVisible.value = true
+}
+
+const handleView = (row) => {
+  let config = { interval: '1m', max_retries: 3 }
+  try {
+    if (row.notify_config) {
+      config = JSON.parse(row.notify_config)
+    }
+  } catch (e) {}
+  
+  detailMerchant.value = {
+    ...row,
+    interval: config.interval || '1m',
+    max_retries: config.max_retries || 3
+  }
+  detailVisible.value = true
 }
 
 const openSimulatePay = (row) => {
