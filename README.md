@@ -91,6 +91,55 @@ npm run dev
 ```
 启动成功后，访问 `http://localhost:3000` 进入管理后台。
 
+### 3.3 反向代理
+
+#### 第一步: 生成证书
+```bash
+1. 生成私钥（key文件）
+openssl genrsa -out mch.weixin.qq.com.key 2048
+
+2. 生成证书签名请求（csr文件）
+openssl req -new -key mch.weixin.qq.com.key -out mch.weixin.qq.com.csr
+
+@注意: Common Name (e.g. server FQDN or YOUR name) 必须填写 api.mch.weixin.qq.com
+
+3. 生成自签名证书（crt文件，有效期365天）
+openssl x509 -req -days 365 -in mch.weixin.qq.com.csr -signkey mch.weixin.qq.com.key -out mch.weixin.qq.com.crt
+```
+#### 第二步： 配置nginx
+```nginx
+server {
+    listen 443 ssl;
+    server_name api.mch.weixin.qq.com;
+
+     # 自签名证书仅用于接收 443 连接以便重定向（可用 openssl 生成）
+    ssl_certificate     ssl/mch.weixin.qq.com.crt;
+    ssl_certificate_key ssl/mch.weixin.qq.com.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache   off;
+
+    # SSL基础配置
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers on;
+    
+    # 反向代理配置
+    location / {
+        # 配置到沙盒的API地址
+        proxy_pass http://127.0.0.1:8080; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        access_log logs/wxpay_access.log;
+        error_log logs/wxpay_error.log;
+    }
+    
+}
+```
+
+#### 第三步： 更换Hosts
+本地hosts将 127.0.0.1 指向到 api.mch.weixin.qq.com
+
 ---
 
 ## 4. 开发说明
