@@ -106,7 +106,15 @@ func TriggerCallback(tx model.Transaction) {
 				continue
 			}
 
-			resp, err := http.Post(tx.NotifyUrl, "application/json", bytes.NewBuffer(jsonBody))
+			// 如果商户有配置回调地址，则使用商户配置的回调地址，否则使用 Transaction 配置的回调地址
+			notifyUrl := tx.NotifyUrl
+			if mch.NotifyUrl != "" {
+				notifyUrl = mch.NotifyUrl
+			}
+
+			fmt.Printf("Transaction %s callback attempt %d, retry interval: %s, max retries: %d, notify url: %s\n", tx.TransactionID, int(existingLogsCount)+1, retryInterval.String(), maxRetries, notifyUrl)
+
+			resp, err := http.Post(notifyUrl, "application/json", bytes.NewBuffer(jsonBody))
 
 			status := "FAIL"
 			statusCode := 0
@@ -128,7 +136,7 @@ func TriggerCallback(tx model.Transaction) {
 			// 记录日志
 			log := model.CallbackLog{
 				TransactionID: tx.TransactionID,
-				NotifyUrl:     tx.NotifyUrl,
+				NotifyUrl:     notifyUrl,
 				RequestBody:   string(jsonBody),
 				ResponseBody:  respBody,
 				StatusCode:    statusCode,
